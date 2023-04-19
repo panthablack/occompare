@@ -7,6 +7,16 @@
 
 <script setup>
 import OccupationSelector from './OccupationSelector.vue'
+import api from '../utilities/api'
+
+const fetchOccupations = async () => {
+    api('/api/occupations', { method: 'GET' }).then(r => console.log(r)).catch(e => console.log(e.response))
+    // const res = await api('/api/occupations', { method: 'GET' })
+    // console.log(res)
+}
+
+fetchOccupations()
+
 </script>
 
 <!--

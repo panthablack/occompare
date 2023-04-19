@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OccupationsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,7 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware(['api'])->group(function () {
-    Route::get('/occupations', 'OccupationsController@index');
-    Route::post('/compare', 'OccupationsController@compare');
-});
+Route::get('occupations', [OccupationsController::class, 'index']);
+Route::get('compare', [OccupationsController::class, 'compare']);
