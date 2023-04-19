@@ -18,6 +18,6 @@ Incorporate the original brand color from the original template:
 '--brand-color': '#fbb040'
 */
 .brandBackground {
-    background-color: #fbb040;
+    background-color: #e9d8c1;
 }
 </style>

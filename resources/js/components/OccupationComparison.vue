@@ -1,12 +1,23 @@
 <template>
     <div class="occupationComparison">
         <form>
-            <h1 class="text-xl mb-4">Occupation Comparison</h1>
-            <div class="flex items-center justify-around">
-                <OccupationSelector name="occupation1" label="Occupation 1"
-                    :options="occupationsOptions" @changed="onOccupation1Changed" />
-                <OccupationSelector name="occupation2" label="Occupation 2"
-                    :options="occupationsOptions" @changed="onOccupation2Changed" />
+            <h1 class="text-xl">Occupation Comparison</h1>
+            <h2 class="text-lg mb-4 font-normal">Please select 2 occupations to compare:</h2>
+            <div class="loadingSpinner flex items-center justify-center" v-if="loading">
+                <LoadingSpinner />
+            </div>
+            <div class="container mx-auto" v-else>
+                <div class="flex items-center justify-around mb-8">
+                    <OccupationSelector name="occupation1" label="Occupation 1"
+                        :options="occupationsOptions" @changed="onOccupation1Changed" />
+                    <OccupationSelector name="occupation2" label="Occupation 2"
+                        :options="occupationsOptions" @changed="onOccupation2Changed" />
+                </div>
+            </div>
+            <div class="flex items-center justify-around" v-if="matched">
+                <MatchCard>
+                    <h1>I am content</h1>
+                </MatchCard>
             </div>
         </form>
     </div>
@@ -14,10 +25,14 @@
 
 <script setup>
 import OccupationSelector from './OccupationSelector.vue'
+import LoadingSpinner from './LoadingSpinner.vue'
+import MatchCard from './MatchCard.vue'
 import api from '../utilities/api'
 import { computed, ref } from 'vue'
 
 const occupations = ref([])
+const loading = ref(true)
+const matched = ref(false)
 
 const occupationsOptions = computed(() => occupations.value.map(o => ({ ...o, value: o.code, text: o.title })))
 
@@ -25,6 +40,7 @@ const fetchOccupations = () => {
     api('/api/occupations', { method: 'GET' })
         .then(r => occupations.value = r?.data)
         .catch(e => console.log(e.response))
+        .finally(() => loading.value = false)
 }
 
 fetchOccupations()
