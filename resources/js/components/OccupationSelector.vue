@@ -1,53 +1,33 @@
 <template>
     <div class="occupationSelector">
-        <h1 class="text-xl">Occupation Selector</h1>
+        <p>
+            <label class="text-lg" :for="getId"> {{ label }}</label>
+        </p>
+        <select class="form-select" :name="name" :id="getId" v-model="selected" @change="onChanged">
+            <option v-for="o in optionsWithPlaceholder" :key="o.value" :value="o.value">{{ o.text }}
+            </option>
+        </select>
     </div>
 </template>
 
-<!--
+<script setup>
+import { computed, ref } from 'vue'
 
-    LEGACY CODE FOR REFERENCE
+const props = defineProps({
+    label: { type: String, required: true },
+    name: { type: String, required: true },
+    options: { type: Array, required: true },
+    placeholder: { type: String, default: 'Please select from the following options...' },
+})
 
-<template>
-    <selectize v-model="selected">
-        <option :value="null">Please select</option>
-        <option v-for="(occupation, index) in occupations" :key="index" :value="occupation.code">{{
-            occupation.title }}</option>
-    </selectize>
-</template>
+const selected = ref(null)
 
-<script>
-import Selectize from 'vue2-selectize';
+const getId = computed(() => props.name + 'Selector')
+const optionsWithPlaceholder = computed(() => [
+    { text: props.placeholder, value: null }, ...props.options
+])
 
-export default {
-    name: 'select-occupation',
-    components: {
-        Selectize
-    },
-    data() {
-        return {
-            occupations: [],
-            selected: null
-        };
-    },
-    props: {
-        value: {
-            default: null
-        }
-    },
-    watch: {
-        selected() {
-            this.$emit('input', this.selected);
-        }
-    },
-    async created() {
-        let response = await this.axios.get('/api/occupations');
-        this.occupations = response.data;
-        this.selected = this.value;
-    }
-}
+const emit = defineEmits(['changed'])
+
+const onChanged = (e) => emit('changed', e?.target?.value)
 </script>
-
-<style lang="scss" scoped>
-@import '~selectize/dist/css/selectize.default.css';
-</style> -->

@@ -1,21 +1,37 @@
 <template>
     <div class="occupationComparison">
-        <h1 class="text-xl">Occupation Comparison</h1>
-        <OccupationSelector />
+        <form>
+            <h1 class="text-xl mb-4">Occupation Comparison</h1>
+            <div class="flex items-center justify-around">
+                <OccupationSelector name="occupation1" label="Occupation 1"
+                    :options="occupationsOptions" @changed="onOccupation1Changed" />
+                <OccupationSelector name="occupation2" label="Occupation 2"
+                    :options="occupationsOptions" @changed="onOccupation2Changed" />
+            </div>
+        </form>
     </div>
 </template>
 
 <script setup>
 import OccupationSelector from './OccupationSelector.vue'
 import api from '../utilities/api'
+import { computed, ref } from 'vue'
 
-const fetchOccupations = async () => {
-    api('/api/occupations', { method: 'GET' }).then(r => console.log(r)).catch(e => console.log(e.response))
-    // const res = await api('/api/occupations', { method: 'GET' })
-    // console.log(res)
+const occupations = ref([])
+
+const occupationsOptions = computed(() => occupations.value.map(o => ({ ...o, value: o.code, text: o.title })))
+
+const fetchOccupations = () => {
+    api('/api/occupations', { method: 'GET' })
+        .then(r => occupations.value = r?.data)
+        .catch(e => console.log(e.response))
 }
 
 fetchOccupations()
+
+const onOccupation1Changed = (e) => console.log('onOccupation1Changed', e)
+const onOccupation2Changed = (e) => console.log('onOccupation2Changed', e)
+
 
 </script>
 
