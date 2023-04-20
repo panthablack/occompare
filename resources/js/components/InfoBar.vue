@@ -8,7 +8,7 @@
 defineProps({ author: String, required: true })
 </script>
 
-<style>
+<style scoped>
 .infoBar {
     background-color: #218083;
 }

@@ -27,8 +27,8 @@ class OccupationsController extends Controller
     public function compare(Request $request)
     {
         $this->occparser->setScope('skills');
-        $occupation_1 = $this->occparser->get($request->get('occupation_1'));
-        $occupation_2 = $this->occparser->get($request->get('occupation_2'));
+        $occupation_1 = $this->occparser->get($request->get('occupation1'));
+        $occupation_2 = $this->occparser->get($request->get('occupation2'));
 
         /** IMPLEMENT COMPARISON **/
         $match = 68;

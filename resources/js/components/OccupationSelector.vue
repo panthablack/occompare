@@ -4,7 +4,7 @@
             <!-- TODO: Either replace with autocomplete (best solution) or
                         style so that inputs match in width. -->
             <input type="search" v-model="search" class="inline-block rounded-full ml-4 pr-8 flex-grow"
-                :autofocus="autofocus" :placeholder="showLabel ? '' : label">
+                :autofocus="autofocus" :placeholder="showLabel ? '' : label" @input="onInput">
             <SearchIcon class="inline-block relative -left-7" />
             <p v-if="showLabel">
                 <label class="text-lg mr-4" :for="getId"> {{ label }}</label>
@@ -32,6 +32,7 @@ import { trimmedAndLowered } from '../utilities/strings'
     Also, try @headlessui/vue
 */
 
+//props
 const props = defineProps({
     autofocus: Boolean,
     label: { type: String, required: true },
@@ -41,9 +42,14 @@ const props = defineProps({
     showLabel: Boolean,
 })
 
+// emits
+const emit = defineEmits(['changed'])
+
+// data
 const selected = ref(null)
 const search = ref('')
 
+// computed
 const getId = computed(() => props.name + 'Selector')
 
 const optionsWithPlaceholder = computed(() => [
@@ -51,13 +57,16 @@ const optionsWithPlaceholder = computed(() => [
 ])
 
 const filteredOptions = computed(() => {
-
     const s = trimmedAndLowered(search.value)
     if (!s) return props.options
     else return props.options.filter(o => trimmedAndLowered(o.text).indexOf(s) !== -1)
 })
 
-const emit = defineEmits(['changed'])
-
+// methods
 const onChanged = (e) => emit('changed', e?.target?.value)
+
+const onInput = () => {
+    selected.value = null
+    emit('changed', null)
+}
 </script>

@@ -1,23 +1,29 @@
 <template>
     <div class="occupationComparison">
-        <form>
-            <h1 class="text-xl">Occupation Comparison</h1>
-            <h2 class="text-lg mb-4 font-normal">Please select 2 occupations to compare:</h2>
+        <form @submit.prevent="onSubmit">
+            <div class="pageHeading container mx-auto mt-6 mb-8 pl-4">
+                <h1 class="text-xl">Occupation Comparison</h1>
+                <h2 class="text-lg mb-4 font-normal">Please select 2 occupations to compare:</h2>
+            </div>
             <div class="loadingSpinner flex items-center justify-center" v-if="loading">
                 <LoadingSpinner />
             </div>
-            <div class="container mx-auto" v-else>
-                <div class="flex items-center justify-around mb-8">
-                    <OccupationSelector name="occupation1" label="Occupation 1"
+            <div class="container mx-auto mb-6" v-else>
+                <div class="grid lg:grid-cols-2 grid-cols-1 gap-4 mb-8">
+                    <OccupationSelector name="occupation1" label="Search for an occupation..."
                         :options="occupationsOptions" @changed="onOccupation1Changed" />
-                    <OccupationSelector name="occupation2" label="Occupation 2"
+                    <OccupationSelector name="occupation2" label="Search for a second occupation..."
                         :options="occupationsOptions" @changed="onOccupation2Changed" />
                 </div>
+                <div class="compareButtonWrapper text-center">
+                    <CompareButton :disabled="!canCompare">
+                        {{ canCompare ? 'Compare' : 'Loading...' }}
+                    </CompareButton>
+                </div>
             </div>
-            <div class="flex items-center justify-around" v-if="matched">
-                <MatchCard>
-                    <h1>I am content</h1>
-                </MatchCard>
+            <div class="text-center" v-if="matched && !isNaN(match) && !matching">
+                <MatchCard :occupation1="selectedOccupation1" :occupation2="selectedOccupation2"
+                    :match="match" />
             </div>
         </form>
     </div>
@@ -27,129 +33,56 @@
 import OccupationSelector from './OccupationSelector.vue'
 import LoadingSpinner from './LoadingSpinner.vue'
 import MatchCard from './MatchCard.vue'
+import CompareButton from './CompareButton.vue'
 import api from '../utilities/api'
 import { computed, ref } from 'vue'
 
+// data
 const occupations = ref([])
 const loading = ref(true)
+const match = ref(0)
 const matched = ref(false)
+const matching = ref(false)
+const selectedOccupation1 = ref(null)
+const selectedOccupation2 = ref(null)
 
+// computed
 const occupationsOptions = computed(() => occupations.value.map(o => ({ ...o, value: o.code, text: o.title })))
+const canCompare = computed(() => !!selectedOccupation1.value && !!selectedOccupation2.value && !matching.value)
 
+// methods
 const fetchOccupations = () => {
-    api('/api/occupations', { method: 'GET' })
+    api('/occupations', { method: 'GET' })
         .then(r => occupations.value = r?.data)
         .catch(e => console.log(e.response))
         .finally(() => loading.value = false)
 }
 
+const getOccupationByCode = (c) => occupations.value.find(o => o.code === c) || null
+
+const onOccupation1Changed = (e) => selectedOccupation1.value = getOccupationByCode(e)
+
+const onOccupation2Changed = (e) => selectedOccupation2.value = getOccupationByCode(e)
+
+const onSubmit = () => {
+    matching.value = true
+    api('/compare', {
+        method: 'POST', data: {
+            occupation1: selectedOccupation1.value.code,
+            occupation2: selectedOccupation2.value.code
+        }
+    }).then((r) => {
+        console.log(r)
+        match.value = r?.data?.match
+        matched.value = true
+    }).catch((e) => {
+        console.error(e)
+    }).finally(() => {
+        matching.value = false
+    })
+}
+
+// created
 fetchOccupations()
 
-const onOccupation1Changed = (e) => console.log('onOccupation1Changed', e)
-const onOccupation2Changed = (e) => console.log('onOccupation2Changed', e)
-
-
 </script>
-
-<!--
-
-    LEGACY CODE FOR REFERENCE
-
-<template>
-    <div class="container py-3">
-        <div class="row">
-            <div class="col-12 text-center">
-                <div class="form">
-                    <div class="form-group row">
-                        <div class="col-md-5">
-                            <label>Occupation 1</label>
-                            <select-occupation v-model="occupation_1"></select-occupation>
-                        </div>
-                        <div class="col-md-5">
-                            <label>Occupation 2</label>
-                            <select-occupation v-model="occupation_2"></select-occupation>
-                        </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-danger btn-block mt-4" @click.prevent="compare"
-                                :disabled="!occupation_1 || !occupation_2 || loading">
-                                <template v-if="loading">
-                                    <i class="fa fa-refresh fa-spin"></i>
-                                </template>
-                                <template v-else>
-                                    Compare
-                                </template>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <template v-if="match && !loading">
-                <div class="col-12 text-center">
-                    <h1>{{ match }}%</h1>
-                </div>
-            </template>
-            <template v-else-if="!match && !loading">
-                <div class="col-12 text-center">
-                    Please select two Occupations from above and click Compare
-                </div>
-            </template>
-            <template v-else-if="loading">
-                <div class="col-12 text-center">
-                    Please wait...
-                </div>
-            </template>
-        </div>
-
- *********************************************************************************************
- ******* Use this space to visualise and present the result/breakdown or whatever you see fit
- *********************************************************************************************
-
-    </div>
-</template>
-
-<script>
-import SelectOccupation from '../components/form-controls/SelectOccupation';
-export default {
-    name: 'home-page',
-    components: {
-        SelectOccupation
-    },
-    data() {
-        return {
-            loading: false,
-            occupation_1: null,
-            occupation_2: null,
-            match: null
-        }
-    },
-    methods: {
-        compare() {
-            this.loading = true;
-            this.axios.post('/api/compare', {
-                occupation_1: this.occupation_1,
-                occupation_2: this.occupation_2
-            }).then((response) => {
-                this.loading = false;
-                this.match = response.data.match;
-            }).catch(() => {
-                this.loading = false;
-            });
-        }
-    }
-}
-</script>
-
-<style lang="scss" scoped>
-.form-group {
-    label {
-        font-size: 0.8rem;
-        text-align: left;
-        display: block;
-        margin-bottom: 0.2rem
-    }
-}
-</style>
-
--->

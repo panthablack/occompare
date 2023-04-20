@@ -20,4 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('occupations', [OccupationsController::class, 'index']);
-Route::get('compare', [OccupationsController::class, 'compare']);
+Route::post('compare', [OccupationsController::class, 'compare']);
