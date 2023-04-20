@@ -9,7 +9,7 @@
             </h2>
         </template>
         <div class="matchContainer">
-            <p>Total Match: {{ match }}</p>
+            <p>Total Match: {{ match.total }} ({{ range }})</p>
         </div>
         <slot />
     </Card>
@@ -21,7 +21,10 @@ import Card from './Card.vue'
 const props = defineProps({
     occupation1: Object,
     occupation2: Object,
-    match: Number
+    match: Object
 })
+
+// TODO: calculate the range value
+const range = ref('High')
 
 </script>

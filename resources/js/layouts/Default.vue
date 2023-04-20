@@ -1,11 +1,11 @@
 <script setup>
 import InfoBar from '../components/InfoBar.vue'
-import { author } from '@/config/constants';
+import { AUTHOR } from '@/config/constants';
 </script>
 
 <template>
     <div class="defaultLayoutWrapper brandBackground  selection:bg-rose-900 selection:text-white ">
-        <InfoBar :author="author" />
+        <InfoBar :author="AUTHOR" />
         <div class="contentWrapper relative p-4 min-h-screen bg-center text-gray-950 font-semibold">
             <slot />
         </div>

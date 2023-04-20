@@ -3,8 +3,10 @@
         <div class="flex items-center justify-start mb-4">
             <!-- TODO: Either replace with autocomplete (best solution) or
                         style so that inputs match in width. -->
-            <input type="search" v-model="search" class="inline-block rounded-full ml-4 pr-8 flex-grow"
-                :autofocus="autofocus" :placeholder="showLabel ? '' : label" @input="onInput">
+            <input type="search" v-model="search"
+                class="inline-block rounded-full ml-4 pr-8 flex-grow disabled:opacity-50"
+                :disabled="disabled" :autofocus="autofocus" :placeholder="showLabel ? '' : label"
+                @input="onInput">
             <SearchIcon class="inline-block relative -left-7" />
             <p v-if="showLabel">
                 <label class="text-lg mr-4" :for="getId"> {{ label }}</label>
@@ -12,7 +14,7 @@
         </div>
         <div class="mx-4">
             <select class="form-select rounded-md w-full" :name="name" :id="getId" v-model="selected"
-                @change="onChanged">
+                @change="onChanged" :disabled="disabled">
                 <option v-for="o in optionsWithPlaceholder" :key="o.value" :value="o.value">{{ o.text }}
                 </option>
             </select>
@@ -35,6 +37,7 @@ import { trimmedAndLowered } from '../utilities/strings'
 //props
 const props = defineProps({
     autofocus: Boolean,
+    disabled: Boolean,
     label: { type: String, required: true },
     name: { type: String, required: true },
     options: { type: Array, required: true },
