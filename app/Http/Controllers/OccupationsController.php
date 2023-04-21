@@ -33,7 +33,6 @@ class OccupationsController extends Controller
         $matchedSkills = $this->getMatchedSkills($indexedSkills1, $indexedSkills2);
         $total = $this->getTotal($matchedSkills);
 
-
         return [
             'match' => [
                 'occupation1' => $occupation1,
@@ -47,47 +46,76 @@ class OccupationsController extends Controller
     private function getTotal($matchedSkills)
     {
         try {
-            // ************************************************************************
-            // The scores should be weighted to give high value skills more weight
-            // in the comparison than the low value skills
-            $weightedScores = array_map(function ($s) {
-
-                // *************************************************************
-                // This weight can be used to tune the algorithm,
-                // with 1 being maximum adjustment for weight, and 0 being none.
-                $weight = config('skills.COMPARISON_WEIGHTING');
-                // An upper and lower threshold can be tuned to limit importance
-                // to values between these ranges.
-                $upperThreshold = config('skills.UPPER_THRESHOLD');
-                $lowerThreshold = config('skills.LOWER_THRESHOLD');
-                // *************************************************************
-                $score1 = $s['score1'];
-                $score2 = $s['score2'];
-                $comparison = $s['comparison'];
-                $highestScore = max($score1, $score2);
-                if (
-                    $highestScore > $upperThreshold
-                    || $highestScore < $lowerThreshold
-                ) return $comparison;
-                $deficit = 100 - $highestScore;
-                $importance = ($highestScore + (1 - $weight) * $deficit) / 100;
-                $score = $importance * $comparison;
-                return [
-                    'score' => $score,
-                    'importance' => $importance
-                ];
-            }, $matchedSkills);
-            // $summedImportances = array_sum(array_map(fn ($s) => $s['importance'], $weightedScores));
-            // $summedScores = array_sum(array_map(fn ($s) => $s['score'], $weightedScores));
-            // $total = round($summedScores / $summedImportances, 2);
-            $scores = array_map(fn ($s) => $s['score'], $weightedScores);
-            $total = round(array_sum($scores) / count($matchedSkills), 2);
+            // how different they could have been
+            $maxDiff = $this->getMaxDifference($matchedSkills);
+            // how different they were
+            $sumOfDiffs = $this->getSumOfDiffs($matchedSkills);
+            // invert the relationship as maximum difference should be a low score,
+            // and min difference should be a high score
+            $total = round(($maxDiff - $sumOfDiffs) / $maxDiff * 100, 2);
+            // $scores = array_map(fn ($s) => $s['comparison'], $matchedSkills);
+            // $total = round(array_sum($scores) / count($matchedSkills), 2);
         } catch (Exception $e) {
             if ($e instanceof DivisionByZeroError) $total = 0;
             else throw $e;
         }
         return $total;
     }
+
+    private function getMaxDifference($matchedSkills)
+    {
+        return array_sum(array_map(fn ($s) => max($s['score1'], $s['score2']), $matchedSkills));
+    }
+
+    private function getSumOfDiffs($matchedSkills)
+    {
+        return array_sum(array_map(fn ($s) => abs($s['score1'] - $s['score2']), $matchedSkills));
+    }
+    // private function getTotal($matchedSkills)
+    // {
+    //     try {
+    //         // ************************************************************************
+    //         // The scores should be weighted to give high value skills more weight
+    //         // in the comparison than the low value skills
+    //         $weightedScores = array_map(function ($s) {
+
+    //             // *************************************************************
+    //             // This weight can be used to tune the algorithm,
+    //             // with 1 being maximum adjustment for weight, and 0 being none.
+    //             $weight = config('skills.COMPARISON_WEIGHTING');
+    //             // An upper and lower threshold can be tuned to limit importance
+    //             // to values between these ranges.
+    //             $upperThreshold = config('skills.UPPER_THRESHOLD');
+    //             $lowerThreshold = config('skills.LOWER_THRESHOLD');
+    //             // *************************************************************
+    //             $score1 = $s['score1'];
+    //             $score2 = $s['score2'];
+    //             $comparison = $s['comparison'];
+    //             $highestScore = max($score1, $score2);
+    //             if (
+    //                 $highestScore > $upperThreshold
+    //                 || $highestScore < $lowerThreshold
+    //             ) return $comparison;
+    //             $deficit = 100 - $highestScore;
+    //             $importance = ($highestScore + (1 - $weight) * $deficit) / 100;
+    //             $score = $importance * $comparison;
+    //             return [
+    //                 'score' => $score,
+    //                 'importance' => $importance
+    //             ];
+    //         }, $matchedSkills);
+    //         // $summedImportances = array_sum(array_map(fn ($s) => $s['importance'], $weightedScores));
+    //         // $summedScores = array_sum(array_map(fn ($s) => $s['score'], $weightedScores));
+    //         // $total = round($summedScores / $summedImportances, 2);
+    //         $scores = array_map(fn ($s) => $s['score'], $weightedScores);
+    //         $total = round(array_sum($scores) / count($matchedSkills), 2);
+    //     } catch (Exception $e) {
+    //         if ($e instanceof DivisionByZeroError) $total = 0;
+    //         else throw $e;
+    //     }
+    //     return $total;
+    // }
+
     private function getMatchedSkills($indexedSkills1, $indexedSkills2)
     {
         $matchedSkills = [];
